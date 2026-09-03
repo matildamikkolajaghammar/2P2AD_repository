@@ -1,0 +1,147 @@
+
+# EPDS T1
+# Unadjusted
+epds_t1_unadj <- with(
+  imp,
+  glm.nb(EPDS_T1 ~ SPDD_T1 + IPDD_T1)
+)
+# Adjusted
+epds_t1_adj <- with(
+  imp,
+  glm.nb(EPDS_T1 ~ SPDD_T1 + IPDD_T1 + age + parity + anemia_T1 + meds)
+)
+
+
+# GAD7 T1
+# Unadjusted
+gad_t1_unadj <- with(
+  imp,
+  glm.nb(GAD7_T1 ~ SPDD_T1 + IPDD_T1)
+)
+# Adjusted
+gad_t1_adj <- with(
+  imp,
+  glm.nb(GAD7_T1 ~ SPDD_T1 + IPDD_T1 + age + parity + anemia_T1 + meds)
+)
+
+#EPDS T2
+# Unadjusted
+epds_t2_unadj <- with(
+  imp,
+  glm.nb(EPDS_T2 ~ SPDD_T2 + IPDD_T2)
+)
+# Adjusted
+epds_t2_adj <- with(
+  imp,
+  glm.nb(EPDS_T2 ~ SPDD_T2 + IPDD_T2 + age + parity + anemia_T2 + meds)
+)
+
+# GAD7 T2
+# Unadjusted
+gad_t2_unadj <- with(
+  imp,
+  glm.nb(GAD7_T2 ~ SPDD_T2 + IPDD_T2)
+)
+
+# Adjusted
+gad_t2_adj <- with(
+  imp,
+  glm.nb(GAD7_T2 ~ SPDD_T2 + IPDD_T2 + age + parity + anemia_T2 + meds)
+)
+# Checking assumptions and diagnostics
+D1(gad_t2_adj, gad_t2_unadj)
+D1(gad_t1_adj, gad_t1_unadj)
+D1(epds_t1_adj, epds_t1_unadj)
+D1(epds_t2_adj, epds_t2_unadj)
+
+
+D2(gad_t2_adj, gad_t2_unadj)
+D2(gad_t1_adj, gad_t1_unadj)
+D2(epds_t1_adj, epds_t1_unadj)
+D2(epds_t2_adj, epds_t2_unadj)
+
+#T1
+
+model_list <- gad_t1_adj$analyses
+model_list2 <- gad_t1_unadj$analyses
+
+# 2. Calculate AIC for each model
+aic_adj <- sapply(model_list, AIC)
+aic_unadj <- sapply(model_list2, AIC)
+
+# 3. Mean AIC
+mean(aic_adj)
+mean(aic_unadj)
+
+# Residual check on the first imputed dataset
+sim_res <- simulateResiduals(model_list[[1]])
+plot(sim_res)
+
+sim_res <- simulateResiduals(model_list2[[1]])
+plot(sim_res)
+
+#T2 
+# 1. Extract the list of models
+model_list <- gad_t2_adj$analyses
+model_list2 <- gad_t2_unadj$analyses
+
+# 2. Calculate AIC for each model
+aic_adj <- sapply(model_list, AIC)
+aic_unadj <- sapply(model_list2, AIC)
+
+# 3. Mean AIC
+mean(aic_adj)
+mean(aic_unadj)
+
+# Residual check on the first imputed dataset
+sim_res <- simulateResiduals(model_list[[1]])
+plot(sim_res)
+
+sim_res <- simulateResiduals(model_list2[[1]])
+plot(sim_res)
+
+
+# 1. Extract one imputed dataset
+#T1
+
+model_list <- epds_t1_adj$analyses
+model_list2 <- epds_t1_unadj$analyses
+
+# 2. Calculate AIC for each model
+aic_adj <- sapply(model_list, AIC)
+aic_unadj <- sapply(model_list2, AIC)
+
+# 3. Mean AIC
+mean(aic_adj)
+mean(aic_unadj)
+
+# Residual check on the first imputed dataset
+sim_res <- simulateResiduals(model_list[[1]])
+plot(sim_res)
+
+sim_res <- simulateResiduals(model_list2[[1]])
+plot(sim_res)
+
+
+# Check if model specification is correct 
+# 1. Extract one imputed dataset
+
+#T2 
+# 1. Extract the list of models
+model_list <- epds_t2_adj$analyses
+model_list2 <- epds_t2_unadj$analyses
+
+# 2. Calculate AIC for each model
+aic_adj <- sapply(model_list, AIC)
+aic_unadj <- sapply(model_list2, AIC)
+
+# 3. Mean AIC
+mean(aic_adj)
+mean(aic_unadj)
+
+# Residual check on the first imputed dataset
+sim_res <- simulateResiduals(model_list[[1]])
+plot(sim_res)
+
+sim_res <- simulateResiduals(model_list2[[1]])
+plot(sim_res)
