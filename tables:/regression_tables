@@ -1,0 +1,162 @@
+#T1 GAD Table
+gad_t1_unadj_table <- tbl_regression(gad_t1_unadj, exponentiate = T, label =  list(SPDD_T1 ~ "SPDD (T1)", IPDD_T1 ~ "IPDD (T1)")) %>% bold_labels() %>% 
+  italicize_levels() 
+  
+gad_t1_adj_table<- tbl_regression(gad_t1_adj, exponentiate = T, include = c(SPDD_T1, IPDD_T1), label =  list(SPDD_T1 ~ "SPDD (T1)", IPDD_T1 ~ "IPDD (T1)"))  %>% bold_labels() %>% 
+  italicize_levels() 
+
+tbl_gad_t1 <- tbl_merge(list(gad_t1_unadj_table, gad_t1_adj_table), tab_spanner = c("**Unadjusted**", "**Adjusted**"))
+
+
+# T2 GAD Table
+gad_t2_unadj_table <- tbl_regression(gad_t2_unadj, exponentiate = T, label =  list(SPDD_T2 ~ "SPDD (T2)", IPDD_T2 ~ "IPDD (T2)")) %>% bold_labels() %>% 
+  italicize_levels() 
+  
+gad_t2_adj_table<- tbl_regression(gad_t2_adj, exponentiate = T, include = c(SPDD_T2, IPDD_T2), label =  list(SPDD_T2 ~ "SPDD (T2)", IPDD_T2 ~ "IPDD (T2)"))  %>% bold_labels() %>% 
+  italicize_levels() 
+
+tbl_gad_t2 <- tbl_merge(list(gad_t2_unadj_table, gad_t2_adj_table), tab_spanner = c("**Unadjusted**", "**Adjusted**"))
+
+
+#T1 EPDS Table
+epds_t1_unadj_table <- tbl_regression(epds_t1_unadj, exponentiate = T, label =  list(SPDD_T1 ~ "SPDD (T1)", IPDD_T1 ~ "IPDD (T1)")) %>% bold_labels() %>% 
+  italicize_levels() 
+  
+epds_t1_adj_table<- tbl_regression(epds_t1_adj, exponentiate = T, include = c(SPDD_T1, IPDD_T1), label =  list(SPDD_T1 ~ "SPDD (T1)", IPDD_T1 ~ "IPDD (T1)"))  %>% bold_labels() %>% italicize_levels() 
+
+tbl_epds_t1 <- tbl_merge(list(epds_t1_unadj_table, epds_t1_adj_table), tab_spanner = c("**Unadjusted**", "**Adjusted**"))
+
+
+# T2 EPDS Table
+epds_t2_unadj_table <- tbl_regression(epds_t2_unadj, exponentiate = T, label =  list(SPDD_T2 ~ "SPDD (T2)", IPDD_T2 ~ "IPDD (T2)")) %>% bold_labels() %>% 
+  italicize_levels()
+  
+epds_t2_adj_table<- tbl_regression(epds_t2_adj, exponentiate = T, include = c(SPDD_T2, IPDD_T2), label =  list(SPDD_T2 ~ "SPDD (T2)", IPDD_T2 ~ "IPDD (T2)"))  %>% bold_labels() %>% 
+  italicize_levels() %>% add_glance_source_note() 
+
+
+tbl_epds_t2 <- tbl_merge(list(epds_t2_unadj_table, epds_t2_adj_table), tab_spanner = c("**Unadjusted**", "**Adjusted**"))
+
+
+tbl_t1 <- tbl_stack(list(tbl_gad_t1, tbl_epds_t1), group_header = c("GAD-7 (T1)", "EPDS (T1)"))
+
+tbl_t2 <- tbl_stack(list(tbl_gad_t2, tbl_epds_t2), group_header = c("GAD-7 (T2)", "EPDS (T2)"))
+
+tbl_cross <- tbl_stack(list(tbl_t1, tbl_t2))
+
+tbl_cross <- tbl_cross %>% modify_header(c(groupname_col ~ "**Outcome**", label ~ "**Exposure**"))
+
+show_header_names(tbl_cross)
+
+tbl_cross %>%
+  as_flex_table() %>%
+  save_as_docx(path = "tbl_cross.docx")
+
+tbl_cross
+
+
+single_row_vars <- c("parity", "anemia_T1", "meds", "anemia_T2")
+
+# --- T1 models ---
+t1_models <- list(
+  "GAD T1"  = gad_t1_adj,
+  "EPDS T1" = epds_t1_adj
+)
+
+t1_tbls <- lapply(t1_models, function(model) {
+  vars_present <- intersect(single_row_vars, names(model$model))
+  
+  tbl_regression(
+    model,
+    exponentiate = TRUE,
+    show_single_row = c("anemia_T1", "parity", "meds")
+  ) %>%
+    bold_labels() %>% 
+    bold_p()	
+})
+
+t1_table <- tbl_merge(
+  tbls = t1_tbls,
+  tab_spanner = names(t1_tbls)
+)
+
+# --- T2 models ---
+t2_models <- list(
+  "GAD T2"  = gad_t2_adj,
+  "EPDS T2" = epds_t2_adj
+)
+
+t2_tbls <- lapply(t2_models, function(model) {
+  vars_present <- intersect(single_row_vars, names(model$model))
+  
+  tbl_regression(
+    model,
+    exponentiate = TRUE,
+    show_single_row = c("anemia_T2", "parity", "meds")
+  ) %>%
+    bold_labels() %>% 
+    bold_p()	
+  
+})
+
+t2_table <- tbl_merge(
+  tbls = t2_tbls,
+  tab_spanner = names(t2_tbls)
+)
+
+t2_table
+library(flextable)
+library(officer)
+
+save_as_docx(
+  `Table T1` = as_flex_table(t1_table),
+  `Table T2` = as_flex_table(t2_table),
+  path = "regression_T1_T2_tables.docx"
+)
+
+
+epds_pros_tbl <- tbl_regression(epds_pros, exponentiate = T, include = c(SPDD_T1, IPDD_T1), label =  list(SPDD_T1 ~ "SPDD (T1)", IPDD_T1 ~ "IPDD (T1)")) %>% 
+  bold_labels() %>% 
+  italicize_levels() 
+
+gad_pros_tbl <- tbl_regression(gad_pros, exponentiate = T, include = c(SPDD_T1, IPDD_T1), label =  list(SPDD_T1 ~ "SPDD (T1)", IPDD_T1 ~ "IPDD (T1)")) %>% 
+  bold_labels() %>% 
+  italicize_levels()
+
+tbl_pros <- tbl_stack(list(gad_pros_tbl, epds_pros_tbl), group_header = c("GAD-7 ≥ 7 (T2)", "EPDS ≥ 10 (T2)"))
+
+tbl_pros <- tbl_pros %>% modify_header(groupname_col ~ "**Outcome**", label ~ "**Exposure**")
+
+tbl_pros %>%
+  as_flex_table() %>%
+  save_as_docx(path = "tbl_pros.docx")
+
+tbl_pros
+
+
+t1 <- tbl_regression(gad_pros, exponentiate = TRUE) %>% 
+  bold_p()	
+t2 <- tbl_regression(epds_pros, exponentiate = TRUE) %>% bold_p()	
+
+combined <- tbl_merge(
+  tbls = list(t1, t2),
+  tab_spanner = c("GAD-7 ≥ 7", "EPDS ≥ 10")
+)
+
+combined
+
+library(flextable)
+library(officer)
+
+save_as_docx(
+  `Prospective analysis` = as_flex_table(combined),
+  path = "prospective_full_tables.docx"
+)
+
+epds_full_tbl <- tbl_regression(epds_pros_full, exponentiate = TRUE, show_single_row = c("parity", "anemia_T1", "meds") ) %>% bold_labels() %>% bold_p()
+
+gad_full_tbl <- tbl_regression(gad_pros_full, exponentiate = TRUE, show_single_row = c("parity", "anemia_T1", "meds")) %>% bold_labels() %>% bold_p()
+
+pros_full_merged <- tbl_merge( tbls = list(epds_full_tbl, gad_full_tbl), tab_spanner = c("EPDS T2 ≥10", "GAD7 T2 ≥7") )
+
+pros_full_merged %>% as_flex_table() %>% flextable::save_as_docx(path = "pros_full.docx")
