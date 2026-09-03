@@ -17,4 +17,8 @@ identifiers:
   - type: url
     value: >-
       https://github.com/matildamikkolajaghammar/2PAD_repository
-
+repository-code: >-
+  https://github.com/matildamikkolajaghammar/2PAD_repository.git
+url: 'https://github.com/'
+version: '1.0'
+date-released: '2026-09-03'
