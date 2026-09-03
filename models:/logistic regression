@@ -1,0 +1,118 @@
+
+# GAD-7 ≥ 7 at T2 and pupil measures at T1
+gad_pros <- with(imp, glm(GAD7_T2 >= 7 ~ IPDD_T1 + SPDD_T1 + age + GAD7_T1, family = binomial))
+
+# EPDS ≥ 10 at T2 and pupil measures at T1
+
+epds_pros <- with(imp, glm(EPDS_T2 >= 10 ~ IPDD_T1 + SPDD_T1 + age + EPDS_T1, family = binomial))
+
+# GAD-7 ≥ 7 at T2 and pupil measures at T1
+gad_pros_full <- with(imp, glm(GAD7_T2 >= 7 ~ IPDD_T1 + SPDD_T1 + age + meds + parity + anemia_T1 + GAD7_T1, family = binomial))
+
+# EPDS ≥ 10 at T2 and pupil measures at T1
+
+epds_pros_full <- with(imp, glm(EPDS_T2 >= 10 ~ IPDD_T1 + SPDD_T1 + age + meds + parity + anemia_T1 + EPDS_T1, family = binomial))
+
+# GAD-7 ≥ 7 at T2 and pupil measures at T1
+gad_pros_unadj <- with(imp, glm(GAD7_T2 >= 7 ~ IPDD_T1 + SPDD_T1, family = binomial))
+
+# EPDS ≥ 10 at T2 and pupil measures at T1
+
+epds_pros_unadj <- with(imp, glm(EPDS_T2 >= 10 ~ IPDD_T1 + SPDD_T1, family = binomial))
+
+gad_pros <- with(
+  imp,
+  glm(
+    EPDS_T2 >= 10 ~ IPDD_T1 + SPDD_T1 + age + EPDS_T1,
+    family = poisson(link = "log")
+  )
+)
+
+cca_pros <- glm(EPDS_T2 >= 10 ~ IPDD_T1 + SPDD_T1 + age + EPDS_T1,
+family = poisson(link = "log"), data = combined_preg)
+
+
+### Imputation‑adjusted pseudo‑R²###
+
+# Unadjusted models:
+# For GAD‑7 ≥ 7 at T2
+gad_lrm <- fit.mult.impute(
+  GAD7_T2 >= 7 ~ IPDD_T1 + SPDD_T1,
+  fitter = lrm,
+  xtrans = imp,          
+  data = combined_preg,     
+  lrt = TRUE,            # compute LR tests on each and stacked data
+  pr = FALSE
+)
+
+# For EPDS ≥ 10 at T2
+epds_lrm <- fit.mult.impute(
+  EPDS_T2 >= 10 ~ IPDD_T1 + SPDD_T1,
+  fitter = lrm,
+  xtrans = imp,
+  data = combined_preg,
+  lrt = TRUE,
+  pr = FALSE
+)
+
+# GAD‑7 model
+gad_as <- processMI(gad_lrm, which = "anova")
+
+total_lr_chi2_gad <- gad_as[grepl("TOTAL", rownames(gad_as)), "Chi-Square"]
+
+# EPDS model
+epds_as <- processMI(epds_lrm, which = "anova")
+total_lr_chi2_epds <- epds_as[grepl("TOTAL", rownames(epds_as)), "Chi-Square"]
+
+n_obs <- 99
+
+# GAD‑7 model
+pseudo_R2_gad_unadj <- 1 - exp(-total_lr_chi2_gad / n_obs)
+
+# EPDS model
+pseudo_R2_epds_unadj <- 1 - exp(-total_lr_chi2_epds / n_obs)
+
+pseudo_R2_gad_unadj   # for GAD‑7 ≥ 7 at T2
+pseudo_R2_epds_unadj  # for EPDS ≥ 10 at T2
+
+# Adjusted models: 
+
+gad_lrm <- fit.mult.impute(
+  GAD7_T2 >= 7 ~ IPDD_T1 + SPDD_T1 + age + GAD7_T1,
+  fitter = lrm,
+  xtrans = imp,          
+  data = combined_preg,      
+  lrt = TRUE,            # compute LR tests on each and stacked data
+  pr = FALSE
+)
+
+# For EPDS ≥ 10 at T2
+epds_lrm <- fit.mult.impute(
+  EPDS_T2 >= 10 ~ IPDD_T1 + SPDD_T1 + age + EPDS_T1,
+  fitter = lrm,
+  xtrans = imp,
+  data = combined_preg,
+  lrt = TRUE,
+  pr = FALSE
+)
+
+
+# GAD‑7 model
+gad_as <- processMI(gad_lrm, which = "anova")
+
+total_lr_chi2_gad <- gad_as[grepl("TOTAL", rownames(gad_as)), "Chi-Square"]
+
+# EPDS model
+epds_as <- processMI(epds_lrm, which = "anova")
+total_lr_chi2_epds <- epds_as[grepl("TOTAL", rownames(epds_as)), "Chi-Square"]
+
+n_obs <- 99
+
+# GAD‑7 model
+pseudo_R2_gad_adj <- 1 - exp(-total_lr_chi2_gad / n_obs)
+
+# EPDS model
+pseudo_R2_epds_adj <- 1 - exp(-total_lr_chi2_epds / n_obs)
+
+pseudo_R2_gad_adj   # for GAD‑7 ≥ 7 at T2
+pseudo_R2_epds_adj  # for EPDS ≥ 10 at T2
