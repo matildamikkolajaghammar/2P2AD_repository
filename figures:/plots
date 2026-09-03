@@ -1,0 +1,114 @@
+
+get_spdd <- function(fit, term_label, timepoint, model_type) {
+  pooled <- pool(fit)
+  tidy(pooled, conf.int = TRUE, exponentiate = TRUE) %>%
+    filter(term == term_label) %>%
+    mutate(
+      timepoint = factor(timepoint, levels = c("T1", "T2")),
+      model_type = factor(model_type, levels = c("Unadjusted", "Adjusted"))
+    )
+}
+
+gad_spdd <- bind_rows(
+  get_spdd(gad_t1_unadj, "SPDD_T1", "T1", "Unadjusted"),
+  get_spdd(gad_t1_adj,   "SPDD_T1", "T1", "Adjusted"),
+  get_spdd(gad_t2_unadj, "SPDD_T2", "T2", "Unadjusted"),
+  get_spdd(gad_t2_adj,   "SPDD_T2", "T2", "Adjusted")
+)
+
+pd <- position_dodge(width = 0.25)
+
+p_gad <- ggplot(gad_spdd, aes(x = timepoint, y = estimate, color = model_type, group = model_type)) +
+  geom_hline(yintercept = 1, linetype = "dashed", linewidth = 0.6, color = "grey45") +
+  geom_line(linewidth = 0.8, position = pd) +
+  geom_point(size = 2.8, position = pd) +
+  geom_errorbar(
+    aes(ymin = conf.low, ymax = conf.high),
+    width = 0.08,
+    linewidth = 0.7,
+    position = pd
+  ) +
+  scale_y_log10(
+    breaks = c(0.5, 0.75, 1, 1.25, 1.5),
+    labels = number_format(accuracy = 0.01)
+  ) +
+  scale_color_manual(values = c("Unadjusted" = "#1c9099", "Adjusted" = "#a6bddb")) +
+  labs(
+    x = NULL,
+    y = "Incidence rate ratio for SPDD",
+    color = NULL) +
+  theme_classic(base_size = 13) +
+  theme(
+    legend.position = "bottom",
+    legend.text = element_text(size = 11),
+    axis.text = element_text(color = "black"),
+    axis.title.y = element_text(margin = margin(r = 8)),
+    plot.subtitle = element_text(size = 11, color = "grey20"),
+    plot.margin = margin(8, 8, 8, 8)
+  )
+
+ggsave(
+  filename = "GAD_SPDD.pdf",
+  plot = p_gad,
+  device = cairo_pdf,   # optional, but gives better embedded fonts
+  width = 6,
+  height = 4,
+  units = "in"
+)
+
+p_gad
+
+
+library(dplyr)
+library(ggplot2)
+library(mice)
+library(broom.mixed)
+
+
+# Extract and pool both models
+get_or <- function(fit, model_name) {
+  pooled <- pool(fit)
+  tidy(pooled, conf.int = TRUE, exponentiate = TRUE) %>%
+    filter(term %in% c("IPDD_T1", "SPDD_T1")) %>%
+    mutate(model = model_name)
+}
+
+plot_data <- bind_rows(
+  get_or(gad_pros, "GAD-7 \u2265 7 (T2)"),
+  get_or(epds_pros, "EPDS \u2265 10 (T2)")
+)
+
+library(dplyr)
+library(ggplot2)
+library(ggtext)
+
+# Prepare data for a clean two-panel look
+plot_data_pub <- plot_data %>%
+  mutate(
+    term_name = case_when(
+      term == "IPDD_T1" ~ "IPDD (T1)",
+      term == "SPDD_T1" ~ "SPDD (T1)"
+    ),
+    model = factor(model, levels = c("GAD-7 \u2265 7 (T2)", "EPDS \u2265 10 (T2)"))
+  )
+
+# Professional plot
+p <- ggplot(plot_data_pub, aes(x = estimate, y = term_name, color = model, shape = model)) +
+  geom_vline(xintercept = 1, linetype = "dashed", linewidth = 0.5, color = "black") +
+  geom_point(size = 2, position = position_dodge(width = 0.6)) +
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high), 
+                 height = 0.1, linewidth = 0.6, position = position_dodge(width = 0.6)) +
+  scale_x_log10(breaks = c(0.5, 1, 2, 4), labels = c("0.5", "1.0", "2.0", "4.0")) +
+  scale_color_manual(values = c("#0072B2", "#CC79A7")) + # Professional blue/orange
+  labs(x = "Odds ratio (95% CI)", y = NULL, color = NULL, shape = NULL) +
+  theme_classic(base_size = 12) +
+  theme(
+    legend.position = "bottom",
+    axis.text = element_text(color = "black", size = 11),
+    axis.line.y = element_blank(),
+    panel.grid.major.x = element_line(color = "grey90", linewidth = 0.4)
+  )
+
+ggsave("IPDD_SPDD_OR_plot.pdf", plot = p, width = 8, height = 6)
+
+p
