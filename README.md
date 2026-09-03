@@ -1,4 +1,4 @@
-# 2PAD
+# 2PAD repository
 ### Physiological predictors of anxiety and depression (2PAD)
 ### Matilda Mikkola Jäghammar,MSc, 17/06/26
 
