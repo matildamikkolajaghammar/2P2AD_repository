@@ -1,0 +1,77 @@
+
+dag <- grViz("
+digraph DAG {
+
+  graph [
+    layout    = neato,
+    bgcolor   = 'white',
+    fontname  = 'Helvetica'
+  ]
+
+  node [
+    shape    = rectangle,
+    style    = 'filled,rounded',
+    fontname = 'Helvetica',
+    fontsize = 11,
+    penwidth = 0.5,
+    margin   = '0.18,0.10',
+    height   = 0.45
+  ]
+
+  edge [
+    arrowsize = 0.5,
+    penwidth  = 0.7,
+    arrowhead = vee
+  ]
+
+  # ── Exposure and outcome (middle row) ──────────────────────────────────────
+  pupil [label = 'Pupil indices\n(Exposure)',
+         fillcolor = '#E8EEF4', fontcolor = '#1C3A52', color = '#7A9BB5',
+         pos = '1,2!']
+
+  mh    [label = 'Symptoms of antenatal anxiety and/or depression\n(Outcome)',
+         fillcolor = '#EAE8F2', fontcolor = '#2B1F4A', color = '#8A82B8',
+         pos = '5,2!']
+
+  # ── Key covariates (top row, above exposure+outcome) ───────────────────────
+  age    [label = 'Age',                fillcolor = '#E6F2EC', fontcolor = '#1A3D2B', color = '#6BA888', pos = '0,5!']
+  parity [label = 'Parity',             fillcolor = '#E6F2EC', fontcolor = '#1A3D2B', color = '#6BA888', pos = '2,5!']
+  ssri   [label = 'SSRI / medications', fillcolor = '#E6F2EC', fontcolor = '#1A3D2B', color = '#6BA888', pos = '4,5!']
+  anemia [label = 'Anemia',             fillcolor = '#E6F2EC', fontcolor = '#1A3D2B', color = '#6BA888', pos = '6,5!']
+
+  # ── Potential covariates (right column) ────────────────────────────────────
+  gest    [label = 'Gestational week',  fillcolor = '#F4F3F0', fontcolor = '#3D3B35', color = '#AAAAAA', pos = '8.5,6!']
+  bmi     [label = 'BMI',              fillcolor = '#F4F3F0', fontcolor = '#3D3B35', color = '#AAAAAA', pos = '8.5,4.8!']
+  edu     [label = 'Education',         fillcolor = '#F4F3F0', fontcolor = '#3D3B35', color = '#AAAAAA', pos = '8.5,3.6!']
+  country [label = 'Country',           fillcolor = '#F4F3F0', fontcolor = '#3D3B35', color = '#AAAAAA', pos = '8.5,2.4!']
+  life    [label = 'Life events',       fillcolor = '#F4F3F0', fontcolor = '#3D3B35', color = '#AAAAAA', pos = '8.5,1.2!']
+  activ   [label = 'Physical activity', fillcolor = '#F4F3F0', fontcolor = '#3D3B35', color = '#AAAAAA', pos = '8.5,0!']
+
+  # ── Main causal path ───────────────────────────────────────────────────────
+  pupil -> mh [color = '#333333', penwidth = 1.8, arrowsize = 0.7, arrowhead = normal]
+
+  # ── Key covariates → both nodes ────────────────────────────────────────────
+  age    -> pupil [color = '#6BA888']
+  age    -> mh    [color = '#6BA888']
+  parity -> pupil [color = '#6BA888']
+  parity -> mh    [color = '#6BA888']
+  ssri   -> pupil [color = '#6BA888']
+  ssri   -> mh    [color = '#6BA888']
+  anemia -> pupil [color = '#6BA888']
+  anemia -> mh    [color = '#6BA888']
+
+  # ── Potential covariates → outcome only ────────────────────────────────────
+  gest    -> mh [style = dashed, color = '#BBBBBB']
+  bmi     -> mh [style = dashed, color = '#BBBBBB']
+  edu     -> mh [style = dashed, color = '#BBBBBB']
+  country -> mh [style = dashed, color = '#BBBBBB']
+  life    -> mh [style = dashed, color = '#BBBBBB']
+  activ   -> mh [style = dashed, color = '#BBBBBB']
+}
+")
+
+svg_raw <- charToRaw(export_svg(dag))
+rsvg_pdf(svg_raw, file = "dag_final.pdf")
+rsvg_png(svg_raw, file = "dag_final.png", width = 2400)
+
+dag
